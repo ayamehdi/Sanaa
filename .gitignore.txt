@@ -1,0 +1,11 @@
+# Ignore les dossiers de dépendances
+/node_modules
+
+# Ignore les fichiers de build générés
+/dist
+
+# Ignore les fichiers d'environnement
+/.env
+
+# Ignore les configurations de l'éditeur (par exemple, VSCode)
+/.vscode
