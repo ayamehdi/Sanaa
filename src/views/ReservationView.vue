@@ -47,6 +47,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: "ReservationView",
   data() {
@@ -62,12 +64,17 @@ export default {
     }
   },
   methods: {
-    submitReservation() {
-      // Ici tu peux envoyer la réservation au backend via axios/fetch
-      console.log(this.reservation);
-      this.successMessage = "Votre réservation a été enregistrée avec succès !";
-      // Reset du formulaire
-      this.reservation = { nom: '', email: '', phone: '', date: '', participants: 1 };
+    async submitReservation() {
+      try {
+        // Envoi des données au backend
+        await axios.post('http://localhost:3000/api/contact', this.reservation)
+        this.successMessage = "Votre réservation a été enregistrée avec succès !"
+        // Reset du formulaire
+        this.reservation = { nom: '', email: '', phone: '', date: '', participants: 1 }
+      } catch (err) {
+        console.error(err)
+        this.successMessage = "Une erreur est survenue, veuillez réessayer."
+      }
     }
   }
 }
