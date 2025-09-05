@@ -1,13 +1,14 @@
 <template>
   <div class="container my-5">
     <div class="text-center mb-5">
-      <h1>Réservez votre atelier</h1>
+      <h1>Réservez votre atelier : <span class="atelier-name">{{ name }}</span></h1>
       <p class="lead">Remplissez le formulaire pour réserver votre place</p>
     </div>
 
     <div class="row justify-content-center">
       <div class="col-md-8">
         <form @submit.prevent="submitReservation" class="p-4 shadow rounded bg-light">
+
           <div class="mb-3">
             <label for="name" class="form-label"><i class="bi bi-person-fill"></i> Nom complet</label>
             <input type="text" v-model="reservation.nom" class="form-control" id="name" required>
@@ -20,12 +21,7 @@
 
           <div class="mb-3">
             <label for="phone" class="form-label"><i class="bi bi-telephone-fill"></i> Téléphone</label>
-            <input type="tel" v-model="reservation.phone" class="form-control" id="phone" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="date" class="form-label"><i class="bi bi-calendar-fill"></i> Date de réservation</label>
-            <input type="date" v-model="reservation.date" class="form-control" id="date" required>
+            <input type="tel" v-model="reservation.telephone" class="form-control" id="phone" required>
           </div>
 
           <div class="mb-3">
@@ -33,7 +29,17 @@
             <input type="number" v-model="reservation.participants" class="form-control" id="participants" min="1" required>
           </div>
 
-          <button type="submit" class="btn btn-lg w-100" style="background-color:#d4b185; color:white;">
+          <div class="mb-3">
+            <label for="age" class="form-label"><i class="bi bi-person-badge-fill"></i> Âge</label>
+            <input type="number" v-model="reservation.age" class="form-control" id="age" required>
+          </div>
+
+          <div class="mb-3">
+            <label for="date" class="form-label"><i class="bi bi-calendar-fill"></i> Date de réservation</label>
+            <input type="date" v-model="reservation.date" class="form-control" id="date" required>
+          </div>
+
+          <button type="submit" class="btn btn-lg w-100 reservation-btn">
             Confirmer la réservation
           </button>
         </form>
@@ -47,49 +53,63 @@
 </template>
 
 <script>
-import axios from 'axios'
+import axios from "axios";
 
 export default {
   name: "ReservationView",
+  props: ["name"],
   data() {
     return {
       reservation: {
-        nom: '',
-        email: '',
-        phone: '',
-        date: '',
-        participants: 1
+        nom: "",
+        email: "",
+        telephone: "",
+        participants: 1,
+        age: "",
+        atelier: this.name,
+        date: ""
       },
-      successMessage: ''
-    }
+      successMessage: ""
+    };
   },
   methods: {
-    async submitReservation() {
-      try {
-        // Envoi des données au backend
-        await axios.post('http://localhost:3000/api/contact', this.reservation)
-        this.successMessage = "Votre réservation a été enregistrée avec succès !"
-        // Reset du formulaire
-        this.reservation = { nom: '', email: '', phone: '', date: '', participants: 1 }
-      } catch (err) {
-        console.error(err)
-        this.successMessage = "Une erreur est survenue, veuillez réessayer."
-      }
+    submitReservation() {
+      axios
+        .post("http://localhost:3000/reservations", this.reservation)
+        .then(() => {
+          this.successMessage =
+            `Votre réservation pour l'atelier ${this.name} a été enregistrée avec succès !`;
+          this.reservation = {
+            nom: "",
+            email: "",
+            telephone: "",
+            participants: 1,
+            age: "",
+            atelier: this.name,
+            date: ""
+          };
+        })
+        .catch((err) => {
+          console.error(err);
+          alert("Erreur lors de la réservation : " + (err.response?.data?.message || err.message));
+        });
     }
   }
-}
+};
 </script>
 
 <style scoped>
-form {
-  transition: all 0.3s ease;
+.reservation-btn {
+  background-color: #d4b185;
+  color: white;
+  font-weight: bold;
 }
-
-form:hover {
-  transform: translateY(-5px);
-}
-
-.btn:hover {
+.reservation-btn:hover {
   background-color: #c3a77b !important;
+}
+.atelier-name {
+  color: #d4b185;
+  font-weight: bold;
+  text-transform: capitalize;
 }
 </style>

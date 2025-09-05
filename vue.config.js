@@ -1,4 +1,5 @@
-
 module.exports = {
-  transpileDependencies: true
+  transpileDependencies: [
+    'bootstrap', // Ajoute ici toutes les dépendances que tu veux transpiler si nécessaire
+  ],
 };
