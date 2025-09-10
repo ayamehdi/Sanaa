@@ -6,9 +6,10 @@
         <div class="logo">SANAA</div>
         <div class="links">
           <router-link to="/">Accueil</router-link>
+           <router-link to="/metiers">Ateliers</router-link>
           <router-link to="/about">À propos</router-link>
           <router-link to="/contact">Contact</router-link>
-          <router-link to="/metiers">Métiers</router-link>
+         
         </div>
       </div>
     </nav>

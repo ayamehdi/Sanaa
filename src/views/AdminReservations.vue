@@ -1,31 +1,36 @@
 <template>
   <div class="admin-page py-5">
     <div class="container">
+      <div class="text-end mb-3">
+        <button @click="logout" class="btn btn-secondary">Déconnexion</button>
+      </div>
+
       <div class="text-center mb-5">
         <h1 class="title">📊 Tableau de bord Admin</h1>
         <p class="subtitle">Choisissez ce que vous voulez consulter</p>
       </div>
 
-      <!-- Boutons principaux -->
+      <!-- Boutons -->
       <div class="d-flex justify-content-center mb-5 gap-4 flex-wrap">
         <button class="main-btn reservations-btn"
                 :class="activeSection === 'reservations' ? 'active' : ''"
-                @click="activeSection = 'reservations'; selectedAtelier = null">
+                @click="activeSection = 'reservations'; selectedAtelier = null; fetchReservations()">
           Réservations
         </button>
+
         <button class="main-btn messages-btn"
                 :class="activeSection === 'messages' ? 'active' : ''"
-                @click="activeSection = 'messages'">
+                @click="activeSection = 'messages'; fetchMessages()">
           Messages de contact
         </button>
       </div>
 
-      <!-- ✅ Message de feedback -->
+      <!-- Feedback -->
       <div v-if="feedback.message" :class="['alert', feedback.type]" role="alert">
         {{ feedback.message }}
       </div>
 
-      <!-- Section Réservations -->
+      <!-- Réservations -->
       <div v-if="activeSection === 'reservations'">
         <div class="d-flex justify-content-center mb-3 flex-wrap gap-3">
           <button v-for="atelier in ateliers"
@@ -61,9 +66,7 @@
                   <td>{{ res.age }}</td>
                   <td>{{ res.date }}</td>
                   <td>
-                    <span :class="['badge', getBadgeClass(res.statut)]">
-                      {{ res.statut }}
-                    </span>
+                    <span :class="['badge', getBadgeClass(res.statut)]">{{ res.statut }}</span>
                   </td>
                   <td>
                     <button v-if="res.statut === 'nouvelle'" class="btn btn-success btn-sm me-1"
@@ -86,7 +89,7 @@
         </div>
       </div>
 
-      <!-- Section Messages -->
+      <!-- Messages -->
       <div v-if="activeSection === 'messages'" class="messages-section">
         <h2 class="text-center mb-4">📩 Messages de contact</h2>
         <div v-if="messages.length > 0" class="table-responsive">
@@ -141,32 +144,46 @@ export default {
     }
   },
   methods: {
-    fetchReservations() {
-      axios.get("http://localhost:3000/reservations")
-        .then(res => this.reservations = res.data)
-        .catch(err => console.error(err));
+    async fetchReservations() {
+      try {
+        const token = localStorage.getItem("adminToken");
+        const res = await axios.get("http://localhost:3000/reservations", {
+          headers: { Authorization: token }
+        });
+        this.reservations = res.data;
+      } catch (err) {
+        console.error("Erreur fetchReservations :", err);
+      }
     },
-    fetchMessages() {
-      axios.get("http://localhost:3000/api/contact")
-        .then(res => this.messages = res.data)
-        .catch(err => console.error(err));
+    async fetchMessages() {
+      try {
+        const token = localStorage.getItem("adminToken");
+        const res = await axios.get("http://localhost:3000/api/contact", {
+          headers: { Authorization: token }
+        });
+        this.messages = res.data;
+      } catch (err) {
+        console.error("Erreur fetchMessages :", err);
+      }
     },
     filterAtelier(atelier) {
       this.selectedAtelier = atelier;
     },
     async updateStatus(reservation, newStatus) {
       try {
-        // ✅ Update in DB
-        await axios.put(`http://localhost:3000/reservations/${reservation._id}`, { statut: newStatus });
+        const token = localStorage.getItem("adminToken");
+        await axios.put(`http://localhost:3000/reservations/${reservation._id}`, 
+          { statut: newStatus },
+          { headers: { Authorization: token } }
+        );
+
         reservation.statut = newStatus;
 
-        // ✅ Send email
-        await axios.post("http://localhost:3000/send-email", {
-          email: reservation.email,
-          status: newStatus
-        });
+        await axios.post("http://localhost:3000/send-email", 
+          { email: reservation.email, status: newStatus },
+          { headers: { Authorization: token } }
+        );
 
-        // ✅ Show feedback
         this.showFeedback(`Email envoyé à ${reservation.email} pour le statut "${newStatus}"`, "alert-success");
       } catch (err) {
         console.error("Erreur updateStatus :", err);
@@ -183,34 +200,31 @@ export default {
     showFeedback(message, type) {
       this.feedback.message = message;
       this.feedback.type = type;
-      setTimeout(() => {
-        this.feedback.message = "";
-      }, 3000);
+      setTimeout(() => { this.feedback.message = ""; }, 3000);
+    },
+    logout() {
+      localStorage.removeItem("adminToken");
+      this.$router.push("/admin/login");
     }
   },
   mounted() {
-    this.fetchReservations();
-    this.fetchMessages();
+    const token = localStorage.getItem("adminToken");
+    if (!token) this.$router.push("/admin/login");
   }
 };
 </script>
 
 <style scoped>
-.admin-page { background: #f9f7f3; min-height: 100vh; padding-bottom: 50px; }
-.title { font-weight: 800; color: #6e4b2c; }
-.subtitle { color: #8c7a63; font-size: 1.1rem; }
-.main-btn { min-width: 180px; font-weight: bold; font-size: 1.1rem; border: none; padding: 15px 35px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-.main-btn:hover { transform: translateY(-3px) scale(1.05); }
-.reservations-btn, .messages-btn { background: #6e4b2c; color: white; }
-.main-btn.active { box-shadow: 0 6px 25px rgba(0,0,0,0.2); }
-.atelier-btn { background-color: #c3a77b; color: white; font-weight: bold; border: none; padding: 12px 25px; border-radius: 50px; cursor: pointer; transition: 0.3s; }
-.atelier-btn:hover { background-color: #b39765; }
-.atelier-btn.active { box-shadow: 0 4px 15px rgba(0,0,0,0.2); transform: translateY(-2px); }
-.reservations-table thead { background-color: #6e4b2c; color: white; }
-.messages-table thead { background-color: #d4b185; color: white; }
-table { border-radius: 10px; overflow: hidden; }
-table td, table th { vertical-align: middle !important; }
-.table-responsive { box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-radius: 10px; overflow: hidden; margin-bottom: 40px; }
-.messages-section h2 { color: #6e4b2c; font-weight: 700; margin-bottom: 20px; }
-.badge { padding: 6px 12px; font-size: 0.9rem; border-radius: 10px; }
+/* Styles simplifiés pour l'admin */
+.admin-page { background: #f9fafc; min-height: 100vh; }
+.title { font-size: 2.5rem; font-weight: 700; color: #2c3e50; }
+.subtitle { color: #6c757d; }
+.main-btn { padding: 12px 24px; border-radius: 30px; font-weight: 600; border: none; transition: 0.3s; background: #e9ecef; color: #333; }
+.main-btn.active { background: #0d6efd; color: #fff; }
+.atelier-btn { padding: 10px 18px; border-radius: 25px; background: #f1f1f1; border: 1px solid #ddd; transition: 0.3s; }
+.atelier-btn.active { background: #198754; color: #fff; border-color: #198754; }
+.table { background: #fff; border-radius: 12px; overflow: hidden; }
+.table thead { background: #0d6efd; color: #fff; }
+.table tbody tr:hover { background: #f8f9fa; }
+.alert { border-radius: 8px; font-weight: 500; }
 </style>

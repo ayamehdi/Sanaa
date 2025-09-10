@@ -1,43 +1,134 @@
 <template>
-  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-center px-4">
-    <!-- Hero Section -->
+  <div class="ateliers-section py-5">
+    <div class="container">
+      <h1 class="text-center mb-5">Nos Ateliers</h1>
 
-   
-  </div>
-
-  <!-- Section Métiers -->
-  <section id="metiers" class="py-16 bg-white">
-    <div class="max-w-6xl mx-auto px-4">
-      <h2 class="text-3xl font-bold text-indigo-700 text-center mb-12">Métiers de l’artisanat</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        
-        <!-- Métier 1 -->
-        <div class="bg-gray-50 rounded-lg shadow hover:shadow-md transition p-6 text-center">
-          <img src="/src/assets/zellige.jpg" alt="Zellige" class="h-40 w-full object-cover rounded mb-4">
-          <h3 class="text-xl font-semibold text-gray-800">Zellige</h3>
-          <p class="text-gray-600 text-sm mt-2">Art de la mosaïque en céramique, emblématique de Fès.</p>
+      <div
+        v-for="(atelier, index) in ateliers"
+        :key="atelier.slug"
+        class="row align-items-center mb-5 atelier-card"
+        :class="{ 'flex-row-reverse': index % 2 !== 0 }"
+      >
+        <!-- Image + bouton -->
+        <div class="col-md-6 text-center d-flex flex-column align-items-center">
+          <h3 class="atelier-title">{{ atelier.title }}</h3>
+          <img
+            :src="require(`@/assets/${atelier.image}`)"
+            class="img-fluid rounded shadow atelier-img"
+            :alt="atelier.title"
+          />
+          <!-- Bouton toujours sous l’image -->
+          <div class="mt-3">
+            <router-link :to="`/atelier/${atelier.slug}`" class="btn-reserve">
+              Réserver
+            </router-link>
+          </div>
         </div>
 
-        <!-- Métier 2 -->
-        <div class="bg-gray-50 rounded-lg shadow hover:shadow-md transition p-6 text-center">
-          <img src="/src/assets/tapis.jpg" alt="Tapis berbère" class="h-40 w-full object-cover rounded mb-4">
-          <h3 class="text-xl font-semibold text-gray-800">Tapis berbère</h3>
-          <p class="text-gray-600 text-sm mt-2">Tissés à la main par les femmes amazighes du Moyen Atlas.</p>
+        <!-- Description -->
+        <div class="col-md-6 atelier-description">
+          <p>{{ atelier.description }}</p>
         </div>
-
-        <!-- Métier 3 -->
-        <div class="bg-gray-50 rounded-lg shadow hover:shadow-md transition p-6 text-center">
-          <img src="/src/assets/cuir.jpg" alt="Cuir de Fès" class="h-40 w-full object-cover rounded mb-4">
-          <h3 class="text-xl font-semibold text-gray-800">Cuir de Fès</h3>
-          <p class="text-gray-600 text-sm mt-2">Travail du cuir dans les tanneries traditionnelles de Fès.</p>
-        </div>
-
       </div>
     </div>
-  </section>
+  </div>
 </template>
+
 <script>
 export default {
-  name: 'MetiersView'
-}
+  name: "AtelierView",
+  data() {
+    return {
+      ateliers: [
+        {
+          title: "Zellige",
+          slug: "zellige",
+          image: "zellige.jpg",
+          description:
+            "Le zellige marocain est un art ancestral qui consiste à créer des mosaïques colorées en faïence émaillée. Chaque pièce est taillée à la main et assemblée pour former des motifs géométriques raffinés, reflétant l’élégance et le savoir-faire marocain."
+        },
+        {
+          title: "Calligraphie",
+          slug: "calligraphie",
+          image: "calligraphie.jpg",
+          description:
+            "La calligraphie arabe est l’art d’écrire de façon esthétique et artistique. Elle exprime la beauté des lettres et leur harmonie, transformant l’écriture en œuvre d’art spirituelle et visuelle."
+        },
+        {
+          title: "Broderie",
+          slug: "broderie",
+          image: "broderie.jpg",
+          description:
+            "La broderie marocaine est un artisanat raffiné qui mêle fils colorés et motifs traditionnels. Chaque pièce raconte une histoire et valorise la richesse culturelle et créative du Maroc."
+        }
+      ]
+    };
+  }
+};
 </script>
+
+<style scoped>
+/* Section */
+.ateliers-section {
+  background-color: #f8f4f0; /* Nude clair */
+}
+
+/* Cartes ateliers */
+.atelier-card {
+  background: #fff;
+  border-radius: 15px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  transition: transform 0.3s ease;
+}
+
+.atelier-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Titres */
+h1 {
+  font-weight: 700;
+  color: #4a2c2a;
+}
+
+.atelier-title {
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #a67c52;
+}
+
+/* Images */
+.atelier-img {
+  max-height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+/* Texte description */
+.atelier-description p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #444;
+}
+
+/* Bouton réserver */
+.btn-reserve {
+  display: inline-block;
+  background-color: #a67c52; /* Nude foncé */
+  color: #fff;
+  padding: 10px 25px;
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.btn-reserve:hover {
+  background-color: #8c5e3c;
+  transform: scale(1.05);
+  color: #fff;
+}
+</style>

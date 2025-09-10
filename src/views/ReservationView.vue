@@ -1,115 +1,106 @@
 <template>
-  <div class="container my-5">
-    <div class="text-center mb-5">
-      <h1>Réservez votre atelier : <span class="atelier-name">{{ name }}</span></h1>
-      <p class="lead">Remplissez le formulaire pour réserver votre place</p>
-    </div>
+  <div v-if="atelier" class="container my-5">
+    <div class="row align-items-center">
+      
+      <!-- Colonne image -->
+      <div class="col-md-6 mb-4 mb-md-0">
+        <img 
+          :src="atelier.image" 
+          :alt="atelier.title" 
+          class="img-fluid rounded shadow" 
+          style="max-height:500px; object-fit:cover; width:100%;"
+        >
+      </div>
 
-    <div class="row justify-content-center">
-      <div class="col-md-8">
-        <form @submit.prevent="submitReservation" class="p-4 shadow rounded bg-light">
+      <!-- Colonne contenu -->
+      <div class="col-md-6">
+        <h1 class="mb-3">{{ atelier.title }}</h1>
 
-          <div class="mb-3">
-            <label for="name" class="form-label"><i class="bi bi-person-fill"></i> Nom complet</label>
-            <input type="text" v-model="reservation.nom" class="form-control" id="name" required>
-          </div>
+        <ul class="list-unstyled fs-5">
+          <li class="mb-2">
+            <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+            <strong>Ville :</strong> Marrakech
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-cash-stack text-success me-2"></i>
+            <strong>Prix :</strong> {{ atelier.price }} MAD
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-clock text-primary me-2"></i>
+            <strong>Durée :</strong> 3h
+          </li>
+          <li class="mb-2">
+            <i class="bi bi-calendar-event text-warning me-2"></i>
+            <strong>Horaires :</strong> 10h - 13h
+          </li>
+        </ul>
 
-          <div class="mb-3">
-            <label for="email" class="form-label"><i class="bi bi-envelope-fill"></i> Email</label>
-            <input type="email" v-model="reservation.email" class="form-control" id="email" required>
-          </div>
+        <p class="lead mt-3">{{ atelier.description }}</p>
+        
 
-          <div class="mb-3">
-            <label for="phone" class="form-label"><i class="bi bi-telephone-fill"></i> Téléphone</label>
-            <input type="tel" v-model="reservation.telephone" class="form-control" id="phone" required>
-          </div>
+        <!-- Router link vers la page de réservation -->
+      <router-link 
+  :to="`/reservationform/${name}`" 
+  class="btn btn-primary btn-lg mt-3"
+>
+  <i class="bi bi-check2-circle me-2"></i> Réserver maintenant
+</router-link>
 
-          <div class="mb-3">
-            <label for="participants" class="form-label"><i class="bi bi-people-fill"></i> Nombre de participants</label>
-            <input type="number" v-model="reservation.participants" class="form-control" id="participants" min="1" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="age" class="form-label"><i class="bi bi-person-badge-fill"></i> Âge</label>
-            <input type="number" v-model="reservation.age" class="form-control" id="age" required>
-          </div>
-
-          <div class="mb-3">
-            <label for="date" class="form-label"><i class="bi bi-calendar-fill"></i> Date de réservation</label>
-            <input type="date" v-model="reservation.date" class="form-control" id="date" required>
-          </div>
-
-          <button type="submit" class="btn btn-lg w-100 reservation-btn">
-            Confirmer la réservation
-          </button>
-        </form>
-
-        <div v-if="successMessage" class="alert alert-success mt-3 text-center">
-          {{ successMessage }}
-        </div>
       </div>
     </div>
+  </div>
+
+  <!-- Cas introuvable -->
+  <div v-else class="container my-5 text-center">
+    <h1>Atelier introuvable</h1>
+    <router-link to="/" class="btn btn-secondary mt-3">Retour</router-link>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import zelligeImg from '@/assets/zellige.jpg'
+import calligraphieImg from '@/assets/calligraphie.jpg'
+import broderieImg from '@/assets/broderie.jpg'
 
 export default {
-  name: "ReservationView",
-  props: ["name"],
+   props: ['slug'],
   data() {
     return {
-      reservation: {
-        nom: "",
-        email: "",
-        telephone: "",
-        participants: 1,
-        age: "",
-        atelier: this.name,
-        date: ""
-      },
-      successMessage: ""
-    };
+      ateliers: {
+        zellige: {
+          title: "Atelier Zellige",
+          description: "Découvrez l’art ancestral du zellige, mosaïque traditionnelle marocaine.",
+          price: 250,
+          image: zelligeImg
+        },
+        calligraphie: {
+          title: "Atelier Calligraphie",
+          description: "Maîtrisez la beauté des lettres arabes.",
+          price: 200,
+          image: calligraphieImg
+        },
+        broderie: {
+          title: "Atelier Broderie",
+          description: "Initiez-vous à la broderie marocaine traditionnelle.",
+          price: 300,
+          image: broderieImg
+        }
+      }
+    }
   },
-  methods: {
-    submitReservation() {
-      axios
-        .post("http://localhost:3000/reservations", this.reservation)
-        .then(() => {
-          this.successMessage =
-            `Votre réservation pour l'atelier ${this.name} a été enregistrée avec succès !`;
-          this.reservation = {
-            nom: "",
-            email: "",
-            telephone: "",
-            participants: 1,
-            age: "",
-            atelier: this.name,
-            date: ""
-          };
-        })
-        .catch((err) => {
-          console.error(err);
-          alert("Erreur lors de la réservation : " + (err.response?.data?.message || err.message));
-        });
+  computed: {
+    name() {
+      return this.$route.params.name?.toLowerCase()
+    },
+    atelier() {
+      return this.ateliers[this.name]
     }
   }
-};
+}
 </script>
 
-<style scoped>
-.reservation-btn {
-  background-color: #d4b185;
-  color: white;
+<style>
+h1 {
   font-weight: bold;
-}
-.reservation-btn:hover {
-  background-color: #c3a77b !important;
-}
-.atelier-name {
-  color: #d4b185;
-  font-weight: bold;
-  text-transform: capitalize;
 }
 </style>
